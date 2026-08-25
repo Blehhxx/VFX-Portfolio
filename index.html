@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comp Tree — VFX Compositor Reel</title>
+<meta name="description" content="Compositing portfolio and showreel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- top status bar, mimics application chrome -->
+<header class="app-bar">
+  <div class="app-bar__left">
+    <span class="app-bar__dot"></span>
+    <span class="app-bar__title">comp_tree<span class="app-bar__ext">.nk</span></span>
+  </div>
+  <nav class="app-bar__nav">
+    <a href="#graph" data-scroll>Home</a>
+    <a href="#reel" data-scroll>Reel</a>
+    <a href="#projects" data-scroll>Projects</a>
+    <a href="#about" data-scroll>About</a>
+    <a href="#contact" data-scroll>Contact</a>
+  </nav>
+  <button class="app-bar__menu" id="menuToggle" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- HERO: interactive node graph as the primary navigation -->
+<section class="hero" id="graph">
+  <div class="hero__label">
+    <span class="eyebrow">// click a node to jump in, or drag it to move it</span>
+    <h1>Ishita Sehgal<br>VFX Portfolio</h1>
+    <p class="hero__sub">Compositor reel &amp; selected work — styled like the tool I build it in. Click a node, or use the menu above.</p>
+  </div>
+  <div class="graph-wrap">
+    <svg id="graphSvg" viewBox="0 0 1040 560" preserveAspectRatio="xMidYMid meet" aria-hidden="false" role="img">
+      <g id="edges"></g>
+      <g id="nodes"></g>
+    </svg>
+  </div>
+  <div class="graph-controls">
+    <span class="graph-controls__hint" id="graphHint">drag a node to move it · drag its right dot onto another's left dot to rewire · click a wire to remove it</span>
+    <button id="resetGraph" class="graph-controls__reset" type="button">↺ reset wiring</button>
+    <button id="playgroundToggle" class="graph-controls__reset graph-controls__reset--accent" type="button">+ scribble your own</button>
+  </div>
+
+  <div class="toolbox" id="toolbox" hidden>
+    <div class="toolbox__row" id="toolboxChips"></div>
+    <p class="toolbox__hint">click a tool to drop it on the canvas · drag its body to move it · drag its ports to wire it · click the × to remove it</p>
+    <button id="playgroundDone" class="btn btn--primary toolbox__done" type="button">Done</button>
+  </div>
+  <p class="graph-hint graph-hint--mobile">← swipe to see every node →</p>
+  <div class="hero__scroll-hint">
+    <span>scroll</span>
+    <div class="hero__scroll-line"></div>
+  </div>
+</section>
+
+<!-- VIEWER PANEL: showreel -->
+<section class="panel viewer-panel" id="reel">
+  <div class="panel__chrome">
+    <span class="panel__chrome-title">Viewer1</span>
+    <span class="panel__chrome-meta">1920 × 1080 · 24fps</span>
+  </div>
+  <div class="viewer">
+    <div class="viewer__screen">
+      <video id="reelVideo" poster="" muted loop playsinline>
+        <source src="" type="video/mp4">
+      </video>
+      <div class="viewer__placeholder">
+        <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        <p>Drop your showreel here</p>
+        <span>replace <code>reelVideo</code> source in index.html</span>
+      </div>
+    </div>
+    <div class="viewer__transport">
+      <button id="playBtn" aria-label="Play">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+      </button>
+      <div class="viewer__scrub"><div class="viewer__scrub-fill"></div></div>
+      <span class="viewer__tc">00:00:00 : 00</span>
+      <span class="viewer__badge">REEL_2026_v003</span>
+    </div>
+  </div>
+</section>
+
+<!-- PROJECTS: styled as read nodes / shot list -->
+<section class="panel" id="projects">
+  <div class="panel__chrome">
+    <span class="panel__chrome-title">Read — shot_list</span>
+    <span class="panel__chrome-meta">6 items</span>
+  </div>
+  <div class="section-heading">
+    <span class="eyebrow">// selected work</span>
+    <h2>Projects</h2>
+  </div>
+  <div class="project-grid" id="projectGrid"></div>
+</section>
+
+<!-- KEYER BOOTH: opens as a floating panel when the Booth node is clicked —
+     not a normal scrollable page section. -->
+<div class="booth-overlay" id="boothOverlay" aria-hidden="true">
+  <div class="booth-overlay__backdrop" data-close-boothpanel></div>
+  <div class="booth-overlay__panel">
+    <div class="panel__chrome booth-overlay__titlebar">
+      <span class="panel__chrome-title">Keyer_Booth — floating</span>
+      <span class="panel__chrome-meta">interactive</span>
+      <button class="modal__close" data-close-boothpanel aria-label="Close">✕</button>
+    </div>
+    <div class="booth-overlay__body">
+      <div class="section-heading">
+        <span class="eyebrow">// key it, grade it, move it, paint it — see it composite live</span>
+        <h2>Step into the shot</h2>
+        <p class="booth__lede">This is a real green-screen photo, not a mockup. Toggle the tools below and watch the compositing happen in your browser, then send me what you make.</p>
+      </div>
+
+      <div class="booth">
+        <div class="booth__stage" id="boothStage">
+          <canvas id="boothCanvas" width="700" height="560"></canvas>
+          <canvas id="paintCanvas" width="700" height="560"></canvas>
+          <span class="booth__hint" id="boothStageHint">drag here to move the subject</span>
+        </div>
+
+        <div class="booth__controls">
+          <div class="booth__row" id="boothTools"></div>
+
+          <div class="booth__panelset" id="boothPanels"></div>
+
+          <div class="booth__bg">
+            <span class="booth__bg-label">background</span>
+            <div class="booth__swatches" id="boothSwatches"></div>
+            <label class="booth__upload">
+              upload your own
+              <input type="file" id="boothBgUpload" accept="image/*" hidden>
+            </label>
+          </div>
+
+          <button id="boothDone" class="btn btn--primary booth__done" type="button">Done</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- booth export modal (stacks above the floating panel) -->
+<div class="modal" id="boothModal" aria-hidden="true">
+  <div class="modal__backdrop" data-close-booth></div>
+  <div class="modal__panel modal__panel--narrow">
+    <div class="panel__chrome">
+      <span class="panel__chrome-title">Export</span>
+      <button class="modal__close" data-close-booth aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <p class="export__lede">What do you want to do with your shot?</p>
+      <div class="export__actions">
+        <button class="btn btn--primary export__btn" id="boothSave" type="button">↓ Save to your device</button>
+        <button class="btn export__btn" id="boothSend" type="button">✉ Send it to me</button>
+        <button class="btn export__btn" id="boothClear" type="button">Just clear it</button>
+      </div>
+      <p class="export__note" id="boothNote"></p>
+    </div>
+  </div>
+</div>
+
+<!-- ABOUT: properties panel style -->
+<section class="panel" id="about">
+  <div class="panel__chrome">
+    <span class="panel__chrome-title">Properties — self</span>
+    <span class="panel__chrome-meta">read only</span>
+  </div>
+  <div class="props">
+    <div class="props__tabs">
+      <span class="props__tab props__tab--active">Node</span>
+      <span class="props__tab">Software</span>
+      <span class="props__tab">Info</span>
+    </div>
+    <div class="props__body">
+      <div class="props__row">
+        <label>name</label>
+        <div class="props__field">Your Name</div>
+      </div>
+      <div class="props__row">
+        <label>role</label>
+        <div class="props__field">VFX Compositor</div>
+      </div>
+      <div class="props__row">
+        <label>based_in</label>
+        <div class="props__field">City, Country</div>
+      </div>
+      <div class="props__row">
+        <label>experience</label>
+        <div class="props__field">X years · Feature / TV / Commercials</div>
+      </div>
+      <div class="props__row props__row--wide">
+        <label>bio</label>
+        <div class="props__field props__field--text">
+          Write a couple of sentences here about your path into compositing, the kind of work you gravitate toward, and what you're looking for next. Keep it specific — studios you've worked at, shows you've touched, techniques you're known for.
+        </div>
+      </div>
+      <div class="props__row props__row--wide">
+        <label>toolset</label>
+        <div class="props__field props__field--tags">
+          <span>Nuke</span><span>NukeX</span><span>Mocha</span><span>Cara VR</span><span>Silhouette</span><span>Python</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT: script editor / console styling -->
+<section class="panel console-panel" id="contact">
+  <div class="panel__chrome">
+    <span class="panel__chrome-title">Script Editor</span>
+    <span class="panel__chrome-meta">Python</span>
+  </div>
+  <div class="console">
+    <pre class="console__code"><span class="c-kw">import</span> contact
+
+<span class="c-comment"># get in touch</span>
+contact.email  = <span class="c-str">"you@example.com"</span>
+contact.reel   = <span class="c-str">"vimeo.com/yourreel"</span>
+contact.imdb   = <span class="c-str">"imdb.me/yourname"</span>
+contact.linkedin = <span class="c-str">"linkedin.com/in/yourname"</span>
+
+<span class="c-kw">print</span>(contact.<span class="c-fn">send</span>())</pre>
+    <div class="console__actions">
+      <a class="btn btn--primary" href="mailto:you@example.com">Send email</a>
+      <a class="btn" href="#" target="_blank" rel="noopener">Vimeo</a>
+      <a class="btn" href="#" target="_blank" rel="noopener">LinkedIn</a>
+      <a class="btn" href="#" target="_blank" rel="noopener">IMDb</a>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <span>© <span id="year"></span> Your Name · built with free tools, rendered by hand</span>
+</footer>
+
+<!-- playground done modal -->
+<div class="modal" id="playgroundModal" aria-hidden="true">
+  <div class="modal__backdrop" data-close-playground></div>
+  <div class="modal__panel modal__panel--narrow">
+    <div class="panel__chrome">
+      <span class="panel__chrome-title">Export</span>
+      <button class="modal__close" data-close-playground aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <p class="export__lede">What do you want to do with what you made?</p>
+      <div class="export__actions">
+        <button class="btn btn--primary export__btn" id="exportSave" type="button">↓ Save to your device</button>
+        <button class="btn export__btn" id="exportSend" type="button">✉ Send it to me</button>
+        <button class="btn export__btn" id="exportDiscard" type="button">Just clear it</button>
+      </div>
+      <p class="export__note" id="exportNote"></p>
+    </div>
+  </div>
+</div>
+
+<!-- project modal -->
+<div class="modal" id="projectModal" aria-hidden="true">
+  <div class="modal__backdrop" data-close></div>
+  <div class="modal__panel">
+    <div class="panel__chrome">
+      <span class="panel__chrome-title" id="modalTitle">Read1</span>
+      <button class="modal__close" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="modal__thumb" id="modalThumb"></div>
+      <div class="modal__info">
+        <h3 id="modalName">Project name</h3>
+        <p id="modalRole" class="modal__role">Role · Studio · Year</p>
+        <p id="modalDesc">Description of your contribution to the shot or sequence.</p>
+        <div class="modal__tags" id="modalTags"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="node-tooltip" id="nodeTooltip" role="tooltip"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
